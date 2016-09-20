@@ -1,83 +1,32 @@
 #include "main.h"
 #define DEBUG
 
-typedef enum
-{
-	TRIANGLE,
-	PROFILE
-} mtx_fmt_e;
+typedef float real;
+typedef unsigned int uint;
 
-typedef float real_t;
+// TODO decompose this hell
+// TODO when findin' vetors there's no need to use elem()
+//      (see a notebook for notes)
+// TODO don't use size_t
 
-typedef struct
+class SLE
 {
-	size_t n;
-	mtx_fmt_e fmt;
-	union
-	{
-		real_t *tri;
-		struct
-		{
-			real_t *di,
-				*al,
-				*au;
-			size_t *ia;
-		};
-	};
-	real_t elem(size_t row, size_t col);
-} matrix_t;
+public:
+	SLE();
+	bool readProfile(std::istream& in);
+	bool computeL();
+	bool computeY();
+	bool computeX();
+private:
+	bool loaded = false;
+	uint n, ln, *ia = nullptr;
+	real *di = nullptr, *al = nullptr, *au = nullptr;
+	// ONE VECTOR TO RULE THEM ALL!!1!11!
+	real *vec = nullptr;
+	real *L = nullptr;
+};
 
-typedef struct
-{
-	size_t n;
-	real_t *v;
-	real_t& operator[](const int idx);
-} vector_t;
-
-// TODO do the same with [][] or (,)
-real_t matrix_t::elem(size_t row, size_t col)
-{
-	switch(fmt)
-	{
-		case TRIANGLE:
-		{
-			if(col > row) return 0;
-			size_t num = row;
-			for(size_t i = 1; i < row; ++i) num += i;
-			num += col;
-			return tri[num];
-			break;
-		}
-		case PROFILE:
-		{
-			if(row == col) return di[row];
-			if(row > col)
-			{
-				size_t len = ia[row+1] - ia[row];
-				return col < row-len ? 0 :
-					al[ia[row]+col-(row-len)];
-			}
-			size_t len = ia[col+1] - ia[col];
-			return row < col-len ? 0 : au[ia[col]+row-(col-len)];
-			break;
-		}
-	}
-}
-
-real_t& vector_t::operator[](const int idx)
-{
-	return v[idx];
-}
-
-void print_mtx(matrix_t m, std::ostream& out)
-{
-	for(size_t i = 0; i < m.n; ++i)
-	{
-		for(size_t j = 0; j < m.n; ++j)
-			out << m.elem(i,j) << ' ';
-		out << '\n';
-	}
-}
+SLE::SLE() {}
 
 /*
  * Input format:
@@ -88,107 +37,151 @@ void print_mtx(matrix_t m, std::ostream& out)
  * au_1, au_2, ... au_{ia_{N+1}}
  */
 
-int main(int argc, char **argv)
+bool SLE::readProfile(std::istream& in)
 {
-	// Ax = F, remember?
-	matrix_t A;
-	vector_t F;
-	vector_t x;
-	vector_t y;
-	// A = LL^T
-	matrix_t L;
-	// because storin' L in profile form is not a good idea
-	A.fmt = PROFILE;
-	L.fmt = TRIANGLE;
-	// get N
-	std::cin >> A.n;
-	// allocate memory for L
-	// Note: here I'm usin' L.n as temporary variable to store
-	//       the size of the array
-	L.n = A.n;
-	for(size_t i = 1; i < A.n; ++i) L.n += i;
-	L.tri = new real_t[L.n];
-	// copy n for organizational purposes
-	F.n = x.n = y.n = L.n = A.n;
-	// allocate some memory
-	F.v = new real_t[F.n];
-	x.v = new real_t[x.n];
-	y.v = new real_t[y.n];
-	A.di = new real_t[A.n];
-	A.ia = new size_t[A.n+1];
+	in >> n;
+	// allocate vector
+	vec = new real[n];
+	di = new real[n];
+	ia = new uint[n];
+	// allocate L
+	ln = 0;
+	for(uint i = 1; i < n; ++i) ln += i;
+	L = new real[ln];
 	// read profile
-	for(size_t i = 0; i < A.n+1; ++i)
-		std::cin >> A.ia[i];
+	for(uint i = 0; i < n+1; ++i)
+		in >> ia[i];
 	// allocate some more memory
-	A.al = new real_t[A.ia[A.n]],
-	A.au = new real_t[A.ia[A.n]];
+	al = new real[ia[n]],
+	au = new real[ia[n]];
 	// read all the stuff
-	for(size_t i = 0; i < A.n; ++i)
-		std::cin >> A.di[i];
-	for(size_t i = 0; i < A.ia[A.n]; ++i)
-		std::cin >> A.al[i];
-	for(size_t i = 0; i < A.ia[A.n]; ++i)
-		std::cin >> A.au[i];
-	for(size_t i = 0; i < F.n; ++i)
-		std::cin >> F.v[i];
+	for(uint i = 0; i < n; ++i)
+		in >> di[i];
+	for(uint i = 0; i < ia[n]; ++i)
+		in >> al[i];
+	for(uint i = 0; i < ia[n]; ++i)
+		in >> au[i];
+	for(uint i = 0; i < n; ++i)
+		in >> vec[i];
 
 #ifdef DEBUG
 	std::cerr << "Here comes A:\n";
-	print_mtx(A, std::cerr);
+	for(uint r = 0; r < n; ++r)
+	{
+		for(uint c = 0; c < n; ++c)
+		{
+			if(r == c)
+			{
+				std::cerr << di[r] << ' ';
+				continue;
+			}
+			if(r > c)
+			{
+				uint len = ia[r+1] - ia[r];
+				std::cerr << (c < r-len ?
+					0 : al[ia[r]+c-(r-len)]) << ' ';
+				continue;
+			}
+			uint len = ia[c+1] - ia[c];
+			std::cerr << (r < c-len ?
+				0 : au[ia[c]+r-(c-len)]) << ' ';
+		}
+		std::cerr << '\n';
+	}
 	std::cerr << '\n';
 #endif
 
-	// TODO now, let's find L
-	size_t idx = 0;
-	for(size_t i = 0; i < A.n; ++i)
-	for(size_t j = 0; j <= i; ++j)
+	loaded = true;
+	return loaded;
+}
+
+// hmm... It looks like difference in au brings no changes to L.
+// TODO need debug
+bool SLE::computeL()
+{
+	if(!loaded) return false;
+	uint idx  = 0,    //current index of L
+		 il_i = 0;    //start of the current row
+	for(uint i = 0; i < n; il_i += i, ++i)
 	{
-		real_t sum = 0;
-		if(i == j)
+		for(uint j = 0; j <= i; ++j)
 		{
-			for(size_t k = 0; k < i; ++k) sum += pow(L.elem(k,i),2);
-			L.tri[idx++] = sqrt(A.elem(i,i) - sum);
-			continue;
+			real sum = 0;
+			if(i == j)
+			{
+				for(uint k = il_i; k < il_i + i; ++k) sum += pow(L[k],2);
+				di[i] = sqrt(di[i] - sum);
+				//row_s += i;
+				continue;
+			}
+			for(uint k = 0; k < j; ++k) sum += L[il_i+k] * L[ia[j]+k];
+			L[idx++] = (al[ia[i] + j] - sum)/di[j];
 		}
-		for(size_t k = 0; k < i; ++k) sum += L.elem(i,k)*L.elem(j,k);
-		L.tri[idx++] = (A.elem(i,j) - sum)/L.elem(j,j);
+		ia[i] = il_i;
 	}
-	
+	ia[n+1] = il_i;
 #ifdef DEBUG
 	std::cerr << "Here comes L:\n";
-	print_mtx(L, std::cerr);
+	for(uint row = 0; row < n; ++row)
+	{
+		for(uint col = 0; col < n; ++col)
+		{
+			if(col == row)
+			{
+				std::cerr << di[row] << ' ';
+				continue;
+			}
+			if(col > row)
+			{
+				std::cerr << "0 ";
+				continue;
+			}
+			std::cerr << L[ia[row] + col] << ' ';
+		}
+		std::cerr << '\n';
+	}
 	std::cerr << '\n';
 #endif
+}
 
-	// TODO find y
-	for(size_t i = 0; i < y.n; ++i)
+bool SLE::computeY()
+{
+	if(!loaded) return false;
+	for(uint i = 0; i < n; ++i)
 	{
-		real_t sum = 0;
-		for(size_t k = 0; k < i; ++k) sum += L.elem(i,k)*y[k];
-		y[i] = (F[i] - sum)/L.elem(i,i);
+		real sum = 0;
+		for(uint k = 0; k < i; ++k) sum += L[ia[i]+k] * vec[k];
+		vec[i] = (vec[i] - sum)/di[i];
 	}
-	
 #ifdef DEBUG
-	std::cerr << "y:\n";
-	for(size_t i = 0; i < y.n; ++i) std::cerr << y[i] << ' ';
-	std::cerr << '\n';
-#endif
-
-	// TODO find x
-	for(int64_t i = x.n - 1; i >= 0; --i)
-	{
-		real_t sum = 0;
-		for(size_t k = i + 1; k < x.n; ++k) sum += L.elem(k,i)*x[k];
-		x[i] = (y[i] - sum)/L.elem(i,i);
-	}
-	
-#ifdef DEBUG
-	std::cerr << "x:\n";
-	for(size_t i = 0; i < x.n; ++i) std::cerr << x[i] << ' ';
+	std::cerr << "Wanna see Y? Here it is:\n";
+	for(uint i = 0; i < n; ++i) std::cerr << vec[i] << ' ';
 	std::cerr << "\n\n";
 #endif
+}
 
-	for(size_t i = 0; i < x.n; ++i) std::cout << x[i] << '\n';
+bool SLE::computeX()
+{
+	if(!loaded) return false;
+	for(int i = n - 1; i >= 0; --i)
+	{
+		real sum = 0;
+		for(uint k = i + 1; k < n; ++k) sum += L[ia[k]+i]*vec[k];
+		vec[i] = (vec[i] - sum)/di[i,i];
+	}
+#ifdef DEBUG
+	std::cerr << "X:\n";
+	for(uint i = 0; i < n; ++i) std::cerr << vec[i] << ' ';
+	std::cerr << '\n';
+#endif
+}
 
+int main(int argc, char **argv)
+{
+	SLE sle;
+	sle.readProfile(std::cin);
+	sle.computeL();
+	sle.computeY();
+	sle.computeX();
 	return 0;
 }
