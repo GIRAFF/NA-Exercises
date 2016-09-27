@@ -4,11 +4,6 @@
 typedef float real;
 typedef unsigned int uint;
 
-// TODO decompose this hell
-// TODO when findin' vetors there's no need to use elem()
-//      (see a notebook for notes)
-// TODO don't use size_t
-
 class SLE
 {
 public:
@@ -95,8 +90,6 @@ bool SLE::readProfile(std::istream& in)
 	return loaded;
 }
 
-// hmm... It looks like difference in au brings no changes to L.
-// TODO need debug
 bool SLE::computeL()
 {
 	if(!loaded) return false;
@@ -111,7 +104,6 @@ bool SLE::computeL()
 			{
 				for(uint k = il_i; k < il_i + i; ++k) sum += pow(L[k],2);
 				di[i] = sqrt(di[i] - sum);
-				//row_s += i;
 				continue;
 			}
 			for(uint k = 0; k < j; ++k) sum += L[il_i+k] * L[ia[j]+k];
