@@ -1,2 +1,2 @@
 all:
-	g++ src/*.cc -std=c++11 -g
+	g++ -g src/*.cc -std=c++11

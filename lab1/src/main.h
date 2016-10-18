@@ -3,8 +3,12 @@
 
 #define _USE_MATH_DEFINES
 
-#include <iostream>
-#include <cstdint>
 #include <cmath>
+#include <iostream>
+
+#define DEBUG
+
+typedef float real;
+//typedef unsigned int uint;
 
 #endif //_LAB1_MAIN
