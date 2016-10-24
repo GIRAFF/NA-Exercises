@@ -77,7 +77,6 @@ void SLE::computeL()
 		// the thing is about zros
 		int offr = ia[r+1]-ia[r];
 		int offc = ia[c+1]-ia[c];
-		// TODO make formulas more, i dunno, correct?
 #define notneg(x) ((x) > 0 ? (x) : 0)
 		int sc = ia[c] + notneg(offc-offr+1);
 		int sr = ia[r] - notneg(offc-offr+1);
