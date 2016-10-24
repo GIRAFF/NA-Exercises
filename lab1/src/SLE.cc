@@ -51,10 +51,6 @@ void SLE::load(std::istream& in)
 #endif
 }
 
-/*
- * TODO BUG in SLE::computeL()
- * Last two elements break...
- */
 void SLE::computeL()
 {
 	int r = 0, c = 0;
