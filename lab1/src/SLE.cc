@@ -74,16 +74,18 @@ void SLE::computeL()
 		}
 		if(r == n) break;
 		real sum = 0;
-		// TODO What da hell is going on????
-		int sc = ia[r+1]-ia[r] > ia[c+1]-ia[c] ?
-			ia[c] : ia[c+1]-1+ia[r]-ia[r+1];
-		int sr = ia[r+1]-ia[r] > ia[c+1]-ia[c] ?
-			ia[r+1]-1+ia[c]-ia[c+1] : ia[r];
-		for(int k = 0; k < ia[r+1]-ia[r] > ia[c+1]-ia[c] ?
-				ia[c+1]-ia[c] : ia[r+1] - ia[r];
-				++k)
+		// the thing is about zros
+		int offr = ia[r+1]-ia[r];
+		int offc = ia[c+1]-ia[c];
+		// TODO make formulas more, i dunno, correct?
+#define notneg(x) ((x) > 0 ? (x) : 0)
+		int sc = ia[c] + notneg(offc-offr+1);
+		int sr = ia[r] - notneg(offc-offr+1);
+#undef notneg
+		for(int k = 0; sr+k < i; ++k)
 			sum += al[sr+k] * al[sc+k];
 		al[i] = (al[i] - sum)/di[c];
+		++c;
 	}
 
 #ifdef DEBUG
