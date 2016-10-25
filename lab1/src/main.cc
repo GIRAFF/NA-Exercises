@@ -11,5 +11,6 @@ int main(int argc, char **argv)
 	sle.load(std::cin);
 	sle.computeL();
 	sle.computeY();
+	sle.computeX();
 	return 0;
 }

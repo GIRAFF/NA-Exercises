@@ -121,3 +121,22 @@ void SLE::computeY()
 	std::cerr << "\n\n";
 #endif
 }
+
+void SLE::computeX()
+{
+	for (int i = n-1; i >= 0; --i) {
+		for (int k = ia[i]; k < ia[i+1]; ++k) {
+			// TODO seems, like we need to do kinda reverse of indecies
+			vec[i-ia[i+1]+k] -= al[k];
+			std::cerr << "Mmm! " << i-ia[i+1]+k << '\n';
+		}
+		vec[i] /= di[i];
+	}
+#ifdef DEBUG
+	std::cerr << "X:\n\t";
+	for (int i = 0; i < n; ++i) {
+		std::cerr << vec[i] << " ";
+	}
+	std::cerr << "\n\n";
+#endif
+}
