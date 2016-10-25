@@ -103,3 +103,21 @@ void SLE::computeL()
 	std::cerr << '\n';
 #endif
 }
+
+void SLE::computeY()
+{
+	for (int i = 0; i < n; ++i) {
+		real sum = 0;
+		for (int k = ia[i]; k < ia[i+1]; ++k) {
+			sum += al[k] * vec[i-ia[i+1]+k]; 
+		}
+		vec[i] = (vec[i] - sum)/di[i];
+	}
+#ifdef DEBUG
+	std::cerr << "Y:\n\t";
+	for (int i = 0; i < n; ++i) {
+		std::cerr << vec[i] << " ";
+	}
+	std::cerr << "\n\n";
+#endif
+}
