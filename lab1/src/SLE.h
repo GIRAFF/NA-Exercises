@@ -11,6 +11,7 @@ public:
 	void computeL();  //LLTx = f
 	void computeY();  //Ly = f
 	void computeX();  //LTx = y
+	void printVec(std::ostream& out);
 
 	int n;      //size of A and vec
 	real *di;   //array for matrix diagonal elements

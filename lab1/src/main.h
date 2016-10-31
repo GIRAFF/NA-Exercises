@@ -6,9 +6,16 @@
 #include <cmath>
 #include <iostream>
 
-#define DEBUG
+// use this to dump matrices and vectors to std::err
+//#define DEBUG
 
+// use this to use double as real 
+//#define USE_DOUBLE
+
+#ifdef USE_DOUBLE
+typedef double real;
+#else
 typedef float real;
-//typedef unsigned int uint;
+#endif
 
 #endif //_LAB1_MAIN

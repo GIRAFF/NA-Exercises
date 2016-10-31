@@ -12,5 +12,6 @@ int main(int argc, char **argv)
 	sle.computeL();
 	sle.computeY();
 	sle.computeX();
+	sle.printVec(std::cout);
 	return 0;
 }

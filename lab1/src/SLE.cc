@@ -141,3 +141,10 @@ void SLE::computeX()
 	std::cerr << "\n\n";
 #endif
 }
+
+void SLE::printVec(std::ostream& out)
+{
+	for (uint i = 0; i < n; ++i)
+		out << vec[i] << ' ';
+	out << '\n';
+}
