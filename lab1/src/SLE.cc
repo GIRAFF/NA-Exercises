@@ -127,23 +127,11 @@ void SLE::computeX()
 {
 	for (int i = n-1; i >= 0; --i) {
 	//for (int i = 0; i < n; ++i) {
+		vec[i] /= di[i];
 		//for (int k = ia[i+1]-1; k >= ia[i]; --k) {
 		for (int k = ia[i]; k < ia[i+1]; ++k) {
-			int xi = i;
-			int ai = ia[n]-k-1;
-			int yi = i-ia[i+1]+k;
-			vec[xi] -= al[ai] * vec[yi];
-			std::cerr << "x_" << xi
-				<< " -= a_" << ai
-				<< " * y_" << yi
-				<< '\n';
-			std::cerr << vec[xi]
-				<< " -= " << al[ai]
-				<< " * " << vec[yi]
-				<< "\n\n";
+			vec[i-ia[i+1]+k] -= al[k] * vec[i];
 		}
-		vec[i] /= di[i];
-		std::cerr << "x_" << i << " = " << vec[i] << "\n\n";
 	}
 #ifdef DEBUG
 	std::cerr << "X:\n\t";
