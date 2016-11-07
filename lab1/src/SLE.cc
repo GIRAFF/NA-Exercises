@@ -61,7 +61,11 @@ void SLE::computeL()
 		while(i == ia[r+1])
 		{
 			// computing di[r]
+#ifdef DOUBLE_SCAL
+			double sum = 0;
+#else
 			real sum = 0;
+#endif
 			for(int k = ia[r]; k < ia[r+1]; ++k) sum += pow(al[k], 2);
 			di[r] = sqrt(di[r] - sum);
 			// moving r and c
@@ -70,7 +74,11 @@ void SLE::computeL()
 			c = r - ia[r+1] + ia[r]; 
 		}
 		if(r == n) break;
+#ifdef DOUBLE_SCAL
+		double sum = 0;
+#else
 		real sum = 0;
+#endif
 		// the thing is about zros
 		int offr = ia[r+1]-ia[r];
 		int offc = ia[c+1]-ia[c];
@@ -108,7 +116,11 @@ void SLE::computeL()
 void SLE::computeY()
 {
 	for (int i = 0; i < n; ++i) {
+#ifdef DOUBLE_SCAL
+		double sum = 0;
+#else
 		real sum = 0;
+#endif
 		for (int k = ia[i]; k < ia[i+1]; ++k) {
 			sum += al[k] * vec[i-ia[i+1]+k]; 
 		}
@@ -130,7 +142,11 @@ void SLE::computeX()
 		vec[i] /= di[i];
 		//for (int k = ia[i+1]-1; k >= ia[i]; --k) {
 		for (int k = ia[i]; k < ia[i+1]; ++k) {
+#ifdef DOUBLE_SCAL
+			vec[i-ia[i+1]+k] -= (double)(al[k] * vec[i]);
+#else
 			vec[i-ia[i+1]+k] -= al[k] * vec[i];
+#endif
 		}
 	}
 #ifdef DEBUG
