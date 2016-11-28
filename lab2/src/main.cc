@@ -8,7 +8,7 @@
 #define JACOBI 0
 #define GAUSS  1
 
-typedef float real;
+typedef double real;
 
 class SLE
 {
@@ -24,7 +24,7 @@ public:
 	}
 	/* Input file:
 	 *
-	 * n m wax_param epsilon max_iter
+	 * n m weight epsilon max_iter
 	 * <diagonals>
 	 * f_0 f_1 ... f_n
 	 * x_0 x_1 ... x_n
@@ -55,13 +55,16 @@ public:
 		}
 		return sqrt(sum);
 	}
-#define Jee(e,y,z) (-(ZRODI+e) + e*y/3 + y + z)
+#define Jee(e,y,z) (-(ZRODI+e) + e*(y/3) + y + z)
 	real residual()
 	{
 		real *ax = (real*)calloc(n,sizeof(real));
 		for (uint i = 0; i < n; ++i)
 		for (uint k = 0; k < N; ++k) {
 			int j = Jee(m,k,i);
+//#ifdef DEBUG
+		//std::cerr << "j = " << j << std::endl;
+//#endif
 			ax[i] += j >= 0 && j < n ? di[k][i]*x[j] : 0;
 		}
 		for (uint i = 0; i < n; ++i) {
@@ -70,23 +73,22 @@ public:
 		real nax = norm(ax,n);
 		real nf = norm(f,n);
 		real res = nax / nf;
-#ifdef DEBUG
-		std::cerr << "Residual is " << nax << '/' << nf
-			<< '=' << res << std::endl;
-#endif
+//#ifdef DEBUG
+		//std::cerr << "Residual is " << nax << '/' << nf
+			//<< '=' << res << std::endl;
+//#endif
 		free(ax);
 		return res;
 	}
 	void solve(int method)
 	{
-		uint i;
-		for (i = 0; i < max; ++i) {
+		for (iter = 0; iter < max; ++iter) {
 			iterate(method);
 			if (residual() < eps) break;
 		}
-#ifdef DEBUG
-		std::cerr << "Total number of iterations: " << i << std::endl;
-#endif
+//#ifdef DEBUG
+		//std::cerr << "Total number of iterations: " << iter << std::endl;
+//#endif
 	}
 	void iterate(int method)
 	{
@@ -95,10 +97,10 @@ public:
 			real thing = JACOBI == method ? Jacobi(i) : Gauss(i);
 			x[i] = x[i] + (w/di[ZRODI][i])*thing;
 		}
-#ifdef DEBUG
-		std::cerr << "x: ";
-		print_x(std::cerr);
-#endif
+//#ifdef DEBUG
+		//std::cerr << "x: ";
+		//print_x(std::cerr);
+//#endif
 	}
 	real Jacobi(int i)
 	{
@@ -125,25 +127,27 @@ public:
 			out << x[i] << ' ';
 		out << std::endl;
 	}
+	uint total_iter()
+	{
+		return iter;
+	}
+	real *x;
 private:
-	uint n, m, max;
-	real w, eps, **di, *f, *x, *jx;
+	uint n, m, max, iter;
+	real w, eps, **di, *f, *jx;
 };
 
 int main(int argc, char **argv)
 {
+	real v[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 	SLE sle;
 	sle.init(std::cin);
-	if (argc == 2) {
-		switch (argv[1][0])
-		{
-			case 'j': sle.solve(JACOBI); break;
-			default: sle.solve(GAUSS); break;
-		}
-	} else {
-		std::cerr << "Usage: " << argv[0] << " method" << std::endl;
-		exit(1);
-	}
+	sle.solve(GAUSS);
+	std::cout << sle.residual() << std::endl;
 	sle.print_x(std::cout);
+	for (uint i = 0; i < 10; ++i) {
+		std::cout << v[i] - sle.x[i] << ' ';
+	}
+	std::cout << std::endl << sle.total_iter() << std::endl;
 	return 0;
 }
