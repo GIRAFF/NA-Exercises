@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <iomanip>
 
 #define N      9
 #define ZRODI  4
@@ -19,7 +20,7 @@ public:
 		for (uint i = 0; i < N; ++i) free(di[i]);
 		free(di);
 		free(x);
-		free(jx);
+		//free(jx);
 		free(f);
 	}
 	/* Input file:
@@ -40,10 +41,10 @@ public:
 			for (uint j = 0; j < n; ++j)
 				in >> di[i][j];
 		f = (real*)malloc(n*sizeof(real));
-		for (uint i = 0; i < N; ++i)
+		for (uint i = 0; i < n; ++i)
 			in >> f[i];
 		x = (real*)malloc(n*sizeof(real));
-		for (uint i = 0; i < N; ++i)
+		for (uint i = 0; i < n; ++i)
 			in >> x[i];
 		jx = (real*)malloc(n*sizeof(real));
 	}
@@ -93,32 +94,19 @@ public:
 	void iterate(int method)
 	{
 		if (JACOBI == method) memcpy(jx, x, n*sizeof(real));
+		else jx = x;
 		for (uint i = 0; i < n; ++i) {
-			real thing = JACOBI == method ? Jacobi(i) : Gauss(i);
-			x[i] = x[i] + (w/di[ZRODI][i])*thing;
+			real sum = 0;
+			for (int k = 0; k < N; ++k) {
+				int j = Jee(m,k,i);
+				sum += j >= 0  && j < n ? di[k][i]*jx[j] : 0;
+			}
+			x[i] = jx[i] + (w/di[ZRODI][i])*(f[i] - sum);
 		}
 //#ifdef DEBUG
 		//std::cerr << "x: ";
 		//print_x(std::cerr);
 //#endif
-	}
-	real Jacobi(int i)
-	{
-		real sum = 0;
-		for (int k = 0; k < N; ++k) {
-			int j = Jee(m,k,i);
-			sum += j >= 0  && j < n ? di[k][i]*jx[j] : 0;
-		}
-		return f[i] - sum;
-	}
-	real Gauss(int i)
-	{
-		real sum = 0;
-		for (int k = 0; k < N; ++k) {
-			int j = Jee(m,k,i);
-			sum += j >= 0  && j < n ? di[k][i]*x[j] : 0;
-		}
-		return f[i] - sum;
 	}
 #undef Jee
 	void print_x(std::ostream& out)
@@ -126,6 +114,36 @@ public:
 		for (uint i = 0; i < n; ++i)
 			out << x[i] << ' ';
 		out << std::endl;
+	}
+	void find_w(int method, std::ostream& out)
+	{
+		real v[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+		real pit = 200001;
+		real step;
+		out << "\\begin{longtable}{|c|c|c|c|} \\hline\n";
+		out << "\\(\\omega\\)&\\(x\\)&\\(x^*-x\\)&Итераций\\\\ \\hline\n";
+		if (JACOBI == method) w = step = .5;
+		else w = step = 1;
+		while (step > .01) {
+			iter = 0;
+			memset(x, 0, n*sizeof(real));
+			solve(method);
+			out << "\\(" << w << "\\) &\n\\(\\begin{aligned} ";
+			for (int i = 0; i < n; ++i) {
+				out << "& " << x[i] << (i == n-1 ? " " : " \\\\ ");
+			}
+			out << "\\end{aligned}\\) &\n\\(\\begin{aligned} ";
+			for (int i = 0; i < n; ++i) {
+				out << "& " << v[i] - x[i] << (i == n-1 ? " " : " \\\\ ");
+			}
+			out << "\\end{aligned}\\) &\n\\("
+				<< iter << "\\) \\\\ \\hline\n";
+			step = step/2;
+			if (iter < pit) w += step;
+			else w -= step;
+			pit = iter;
+		}
+		out << "\\end{longtable}\n";
 	}
 	uint total_iter()
 	{
@@ -139,15 +157,11 @@ private:
 
 int main(int argc, char **argv)
 {
-	real v[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+	std::cout << std::setprecision(20);
 	SLE sle;
 	sle.init(std::cin);
-	sle.solve(GAUSS);
-	std::cout << sle.residual() << std::endl;
-	sle.print_x(std::cout);
-	for (uint i = 0; i < 10; ++i) {
-		std::cout << v[i] - sle.x[i] << ' ';
-	}
-	std::cout << std::endl << sle.total_iter() << std::endl;
+	//sle.solve(JACOBI);
+	//sle.print_x(std::cout);
+	sle.find_w(JACOBI, std::cout);
 	return 0;
 }
