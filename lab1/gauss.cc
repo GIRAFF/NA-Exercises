@@ -67,7 +67,6 @@ void Gauss(vector<vector<double>> &m, vector<double> &x)
 				for (int k = i + 1; k < m.size() + 1; k++)
 					m[j][k] = coef * m[i][k] - m[j][k];
 		}
-		13
 	}
 	for (int i = m.size() - 1; i >= 0; i--) {
 		x[i] = 0;
