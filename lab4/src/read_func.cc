@@ -103,15 +103,3 @@ func_t read_rpolish(string &str)
 	func_t res = st.top();
 	return res;
 }
-
-/*int main(int argc, char **argv)
-{
-	string str;
-	getline(cin, str);
-	func_t f = read_rpolish(str);
-	// just to test
-	real *v = new real[1];
-	v[0] = 5;
-	cout << f(v) << endl;
-	return 0;
-}*/

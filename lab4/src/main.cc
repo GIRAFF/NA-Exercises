@@ -3,10 +3,34 @@
 class SNLE
 {
 	public:
-		SNLE() {}
+		SNLE()
+		{
+#ifdef DEBUG
+			// unbuffer log stream
+			log.rdbuf()->pubsetbuf(0, 0);
+			log.open(LOG_PATH, std::ofstream::out);
+#endif
+		}
+		~SNLE()
+		{
+#ifdef DEBUG
+			log.close();
+#endif
+		}
 		void init(std::istream& in)
 		{
 			in >> n >> max_iter >> min_beta >> min_residual;
+#ifndef NOGUI
+			if (2 == n) {
+				can_draw = true;
+				gui.init();
+			} else {
+				can_draw = false;
+#ifdef DEBUG
+				log << "Drawing disabled when n != 2.\n";
+#endif
+			}
+#endif
 			x = new real[n];
 			for (uint i = 0; i < n; ++i)
 				in >> x[i];
@@ -28,7 +52,7 @@ class SNLE
 			func = new func_t[n];
 
 			std::string str;
-			// here to read the rest of the prev line
+			// read the rest of the prev line
 			std::getline(in, str);
 			for (uint i = 0; i < n; ++i)
 				for (uint j = 0; j < n; ++j) {
@@ -39,6 +63,9 @@ class SNLE
 				std::getline(in, str);
 				func[i] = read_rpolish(str);
 			}
+#ifndef NOGUI
+			gui.read_funcs("turtle");
+#endif
 		}
 		real norm(real *v)
 		{
@@ -88,6 +115,16 @@ class SNLE
 				for (uint j = 0; j < n; ++j)
 					a[i][j] = jacobian[i][j](x);
 			}
+#ifdef DEBUG
+			uint debug_min = 0;
+			log << "F: ";
+			for (uint i = 0; i < n; ++i) {
+				log << f[i] << ' ';
+				if (fabs(f[i]) < fabs(f[debug_min]))
+					debug_min = i;
+			}
+			log << "\nMinimal is " << debug_min << '\n';
+#endif
 			// dx
 			sle(dx);
 			// beta
@@ -99,6 +136,11 @@ class SNLE
 				}
 				if (norm(fv) <= nfk) break;
 				beta /= 2;
+				if (beta < min_beta) {
+					log << "Falling with beta < "
+						<< min_beta << std::endl;
+					break;
+				}
 			}
 			// x
 			memcpy(x, xv, n*sizeof(real));
@@ -112,15 +154,21 @@ class SNLE
 			nf = norm(f);
 			iter = 0;
 
-			while (beta > min_beta
-					&& norm(f)/nf > min_residual
+			real nfk;
+			while ((nfk = norm(f))/nf > min_residual
 					&& iter++ < max_iter) {
 				iterate();
+#ifndef NOGUI
+				if(can_draw) gui.add_point(x[0], x[1]);
+#endif
 				for (uint i = 0; i < n; ++i)
-					std::cerr << x[i] << ' ';
-				std::cerr << std::endl;
+					printf("%.20e ", x[i]);
+				printf("\n|F| = %.20e beta = %.20e\n", nfk, beta);
 			}
-			std::cerr << std::endl << iter;
+			std::cout << std::endl << iter << std::endl;
+#ifndef NOGUI
+			gui.show();
+#endif
 		}
 	private:
 		uint n, max_iter, iter;
@@ -130,6 +178,13 @@ class SNLE
 		real *xv, *fv;
 
 		func_t *func, **jacobian;
+#ifndef NOGUI
+		turtle gui;
+		bool can_draw = false;
+#endif
+#ifdef DEBUG
+		std::ofstream log;
+#endif
 };
 
 int main(int argc, char **argv)

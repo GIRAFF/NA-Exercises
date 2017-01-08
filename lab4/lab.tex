@@ -1,0 +1,103 @@
+\documentclass[oneside, final, 12pt]{extarticle}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{vmargin}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{longtable}
+\setpapersize{A4}
+\setmarginsrb{2cm}{2cm}{2cm}{2cm}{0pt}{0mm}{0pt}{13mm}
+\usepackage{indentfirst}%красная строка
+\sloppy
+
+\begin{document}
+\begin{titlepage}
+	\begin{centering}
+		\textsc{Министерство образования и науки Российской Федерации}\\
+		\textsc{Новосибирский государственный технический университет}\\
+		\textsc{Кафедра теоритической и прикладной информатики}\\
+	\end{centering}
+	%\centerline{\hfill\hrulefill\hrulefill\hfill}
+	\vfill
+	\vfill
+	\vfill
+	\Large
+	\centerline{Лабораторная работа №4}
+	\centerline{по дисциплине "<Численные методы">}
+	\centerline{\bfРешение систем нелинейных уравнений методом Ньютона}
+	\normalsize
+	\vfill
+	\vfill
+	\vfill
+	\begin{flushleft}
+		\begin{minipage}{0.3\textwidth}
+			\begin{tabular}{l l}
+				Факультет: & ПМИ\\
+				Группа: & ПМИ-41\\
+				Студент: & Кислицын И. О.\\
+				Преподаватели: & Персова М. Г.\\
+				~ & Задорожный А. Г. 
+			\end{tabular}
+		\end{minipage}
+	\end{flushleft}
+	\vfill
+	\vfill
+	\begin{centering}
+		Новосибирск\\
+		2016\\
+	\end{centering}
+\end{titlepage}
+\setcounter{page}{2}
+\lstset{
+	breaklines=\true,
+	%frame=single,
+	basicstyle=\footnotesize\ttfamily,
+	tabsize=2,
+	showspaces=\false,
+	breaklines=\true,
+	breakatwhitespace=\true,
+	%escapeinside={[}{]},
+	%inputencoding=utf8x,
+	extendedchars=\true,
+	keepspaces=\true,
+	language=Haskell
+}
+\section{Цель работы}
+
+Разработать программу решения системы нелинейных уравнений (СНУ) методом Ньютона.
+
+\section{Программа}
+
+\lstset{caption=main.h}
+\lstinputlisting[language=C++]{main.h}
+
+\lstset{caption=main.cc}
+\lstinputlisting[language=C++]{main.cc}
+
+\lstset{caption=Считывание формул}
+\lstinputlisting[language=C++]{read_func.cc}
+
+\lstset{caption=Рисование}
+\lstinputlisting[language=C++]{turtle.cc}
+
+\section{Исследования}
+
+\begin{tabular}{|c|c|c|} \hline
+	\bf\(k\) & \bf\(x^k\) & \bfИтер. & \bfНевязка \\ \hline
+	\(\begin{aligned}
+		& -5.609291e-12 \\
+		& 2.3752111e-12 \\
+		& -3.916867e-13 \\
+		& 4.5741189e-14 \\
+		& -3.730349e-14 \\
+		& 9.7699626e-15 \\
+		& -3.286260e-14 \\
+		& 3.4638958e-12 \\
+		& -4.440892e-13 \\
+		& 1.5276668e-13 \\
+	\end{aligned}\) & \(9\) & \(1.52199e-12\) \\ \hline
+\end{tabular}
+
+\end{document}
